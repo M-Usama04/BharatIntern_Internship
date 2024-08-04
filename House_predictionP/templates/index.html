@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>House Price Prediction</title>
-    <!-- Add your CSS styles or include external stylesheets here -->
     <style>
-        /* Add your styles here */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -15,9 +13,9 @@
         }
 
         header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
+            background-color: #070c36;
+            color: #ddebfe;
+            padding: 15px;
             text-align: center;
         }
 
@@ -25,21 +23,21 @@
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
-            background-color: #fff;
+            background-color: #e8edfd;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
 
         footer {
             text-align: center;
-            padding: 10px;
-            background-color: #333;
-            color: #fff;
+            padding: 15px;
+            background-color: #130d4c;
+            color: #d6d3e3;
             position: fixed;
             bottom: 0;
             width: 100%;
         }
 
-        /* Add styling for the form */
         form {
             margin-top: 20px;
         }
@@ -47,26 +45,62 @@
         label {
             display: block;
             margin-bottom: 8px;
+            font-weight: bold;
         }
 
         select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         button {
-            background-color: #333;
+            background-color: #080b37;
             color: #fff;
-            padding: 10px;
+            padding: 10px 20px;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
-        /* Style for displaying the predicted price */
+        button:hover {
+            background-color: #054552;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
         #predictedPrice {
             margin-top: 20px;
             font-weight: bold;
+            font-size: 18px;
+            color: #136c03;
+        }
+
+        #error {
+            margin-top: 20px;
+            color: red;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 10px;
+            }
+
+            select {
+                padding: 8px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -78,81 +112,72 @@
         <p>Welcome to House Price Prediction Model!</p>
 
         <!-- Form for input fields -->
-        
-<form id="predictionForm">
-    <label for="beds">Bedrooms:</label>
-    <select id="beds" name="beds">
-        <option value="" disabled selected>Select number of bedrooms</option>
-        {% for bedroom in bedrooms %}
-            <option value="{{ bedroom }}">{{ bedroom }}</option>
-        {% endfor %}
-    </select>
+        <form id="predictionForm">
+            <label for="beds">Bedrooms:</label>
+            <select id="beds" name="beds" required>
+                <option value="" disabled selected>Select number of bedrooms</option>
+                {% for bedroom in bedrooms %}
+                    <option value="{{ bedroom }}">{{ bedroom }}</option>
+                {% endfor %}
+            </select>
 
-    <label for="baths">Baths:</label>
-    <select id="baths" name="baths">
-        <option value="" disabled selected>Select number of bathrooms</option>
-        {% for bathroom in bathrooms %}
-            <option value="{{ bathroom }}">{{ bathroom }}</option>
-        {% endfor %}
-    </select>
+            <label for="baths">Baths:</label>
+            <select id="baths" name="baths" required>
+                <option value="" disabled selected>Select number of bathrooms</option>
+                {% for bathroom in bathrooms %}
+                    <option value="{{ bathroom }}">{{ bathroom }}</option>
+                {% endfor %}
+            </select>
 
-    <label for="size">Size:</label>
-    <select id="size" name="size">
-        <option value="" disabled selected>Select size of the house</option>
-        {% for house_size in sizes %}
-            <option value="{{ house_size }}">{{ house_size }} sqft</option>
-        {% endfor %}
-    </select>
+            <label for="size">Size:</label>
+            <select id="size" name="size" required>
+                <option value="" disabled selected>Select size of the house</option>
+                {% for house_size in sizes %}
+                    <option value="{{ house_size }}">{{ house_size }} sqft</option>
+                {% endfor %}
+            </select>
 
-    <label for="zip_code">Zip Code:</label>
-    <select id="zip_code" name="zip_code">
-        <option value="" disabled selected>Select zip code</option>
-        {% for zip_code in zip_codes %}
-            <option value="{{ zip_code }}">{{ zip_code }}</option>
-        {% endfor %}
-    </select>
+            <label for="zip_code">Zip Code:</label>
+            <select id="zip_code" name="zip_code" required>
+                <option value="" disabled selected>Select zip code</option>
+                {% for zip_code in zip_codes %}
+                    <option value="{{ zip_code }}">{{ zip_code }}</option>
+                {% endfor %}
+            </select>
 
-    <!-- Predict Price button -->
-    <button type="button" onclick="sendData()">Predict Price</button>
+            <!-- Predict Price button -->
+            <button type="button" onclick="sendData()">Predict Price</button>
 
-    <!-- Space for displaying predicted price -->
-    <div id="predictedPrice"></div>
-</form>
+            <!-- Space for displaying predicted price -->
+            <div id="predictedPrice"></div>
 
+            <!-- Space for displaying errors -->
+            <div id="error"></div>
+        </form>
     </main>
     <footer>
-        <p>&copy; 2024 House Price Prediction. All rights reserved.</p>
+        <p>&copy; 2024 House Price Prediction by Usama Mulla.</p>
     </footer>
-    <!-- Add your JavaScript scripts or include external scripts here -->
+    <!-- JavaScript to handle form submission and update UI -->
     <script>
-        // JavaScript function to fetch options for dropdowns
-        function fetchOptions(endpoint, dropdownId) {
-            fetch(endpoint)
-                .then(response => response.json())
-                .then(data => {
-                    const dropdown = document.getElementById(dropdownId);
-                    dropdown.innerHTML = '<option value="" disabled selected>Select an option</option>';
-                    data.forEach(option => {
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option;
-                        optionElement.textContent = option;
-                        dropdown.appendChild(optionElement);
-                    });
-                });
-        }
-
-        // Fetch options for each dropdown on page load
-        window.onload = function() {
-            fetchOptions('/bedrooms', 'beds');
-            fetchOptions('/bathrooms', 'baths');
-            fetchOptions('/sizes', 'size');
-            fetchOptions('/zip_codes', 'zip_code');
-        };
-
-        // JavaScript function to send data and receive predicted price
         function sendData() {
             const form = document.getElementById('predictionForm');
             const formData = new FormData(form);
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = ''; // Clear previous errors
+
+            // Check if all fields are filled
+            let allFilled = true;
+            form.querySelectorAll('select').forEach(select => {
+                if (!select.value) {
+                    allFilled = false;
+                }
+            });
+
+            if (!allFilled) {
+                errorDiv.innerHTML = 'Please fill in all the fields.';
+                return; // Exit if fields are missing
+            }
 
             fetch('/predict', {
                 method: 'POST',
@@ -161,6 +186,10 @@
             .then(response => response.text())
             .then(price => {
                 document.getElementById("predictedPrice").innerHTML = "Price: INR " + price;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById("predictedPrice").innerHTML = "Error predicting price. Please try again.";
             });
         }
     </script>
